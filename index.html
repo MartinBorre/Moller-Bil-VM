@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salgskonkurranse VM 2026 — Møller Bil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --moller-blue: #1400FF;
+  --dark-navy: #1A1A3E;
+  --cream: #EDEBE5;
+  --coral: #E8503A;
+  --white: #FFFFFF;
+  --light-gray: #F5F5F5;
+  --gold: #FFD700;
+  --gold-bg: #FFE082;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+  --top5-bg: #FFF4E6;
+  --green: #4CAF50;
+  --green-bg: #E8F5E9;
+  --text-muted: #6B6B7B;
+  --border: #E0E0E0;
+  --shadow-sm: 0 2px 8px rgba(26, 26, 62, 0.06);
+  --shadow-md: 0 4px 16px rgba(26, 26, 62, 0.10);
+  --shadow-lg: 0 8px 32px rgba(26, 26, 62, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--cream);
+  color: var(--dark-navy);
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--dark-navy);
+  color: var(--white);
+  padding: 24px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.brand-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.2);
+}
+
+.brand-title {
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.last-updated {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+.refresh-btn {
+  background: var(--moller-blue);
+  color: var(--white);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-btn:hover {
+  background: var(--coral);
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.refresh-btn .spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+
+.refresh-btn.loading .spinner {
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== TAB NAVIGATION ===== */
+.tab-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 88px;
+  z-index: 99;
+}
+
+.tab-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-inner::-webkit-scrollbar { display: none; }
+
+.tab {
+  background: none;
+  border: none;
+  padding: 16px 24px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab:hover { color: var(--dark-navy); }
+
+.tab.active {
+  color: var(--moller-blue);
+  border-bottom-color: var(--moller-blue);
+  font-weight: 700;
+}
+
+/* ===== MAIN CONTENT ===== */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.tab-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== PERIOD INFO BAR ===== */
+.period-bar {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.period-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.period-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.period-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--dark-navy);
+}
+
+.period-dates {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--moller-blue);
+  font-weight: 500;
+}
+
+.period-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.status-active {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.status-upcoming {
+  background: var(--cream);
+  color: var(--text-muted);
+}
+
+.status-completed {
+  background: var(--top5-bg);
+  color: var(--coral);
+}
+
+/* ===== GROUP TABLES ===== */
+.section-title {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.group-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.group-header {
+  background: var(--moller-blue);
+  color: var(--white);
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.group-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.group-table thead th {
+  background: var(--dark-navy);
+  color: var(--white);
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.group-table thead th.center { text-align: center; }
+.group-table thead th.right { text-align: right; }
+
+.group-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+
+.group-table tbody tr:last-child { border-bottom: none; }
+.group-table tbody tr:hover { background: var(--light-gray); }
+
+.group-table tbody tr.qualified {
+  background: var(--green-bg);
+  font-weight: 600;
+}
+
+.group-table tbody tr.qualified:hover {
+  background: #D4EDDA;
+}
+
+.group-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+.group-table td.rank {
+  font-weight: 700;
+  color: var(--dark-navy);
+  width: 40px;
+  text-align: center;
+}
+
+.group-table td.center { text-align: center; }
+.group-table td.right { text-align: right; }
+
+.group-table td.poeng {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  text-align: center;
+  color: var(--moller-blue);
+}
+
+.group-table td.mal {
+  font-family: 'DM Mono', monospace;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.qualified-badge {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ===== BRACKET ===== */
+.bracket-container {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  margin-bottom: 32px;
+}
+
+.bracket-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 0.7fr;
+  gap: 32px;
+  min-width: 900px;
+  align-items: stretch;
+}
+
+.bracket-stage {
+  display: flex;
+  flex-direction: column;
+}
+
+.bracket-stage-header {
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--moller-blue);
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--moller-blue);
+}
+
+.bracket-stage.kvartfinale .matches {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  gap: 12px;
+}
+
+.bracket-stage.semifinale .matches,
+.bracket-stage.finale .matches {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  gap: 12px;
+}
+
+.match {
+  background: var(--cream);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.match-team {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.match-team:last-child { border-bottom: none; }
+
+.match-team.winner {
+  background: var(--green-bg);
+  font-weight: 700;
+}
+
+.match-team.loser {
+  opacity: 0.5;
+}
+
+.team-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark-navy);
+}
+
+.team-name.empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.team-poeng {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--moller-blue);
+  margin-left: 12px;
+}
+
+.bracket-stage.winner-stage {
+  justify-content: center;
+  align-items: center;
+}
+
+.winner-card {
+  background: var(--gold-bg);
+  border: 3px solid var(--gold);
+  border-radius: 12px;
+  padding: 32px 16px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+}
+
+.winner-trophy {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.winner-label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--dark-navy);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.winner-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dark-navy);
+}
+
+.winner-name.empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* ===== TOPPSCORER ===== */
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+.brand-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-header {
+  padding: 16px 20px;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.brand-header.vw { background: #001E50; }
+.brand-header.audi { background: #0D0D0D; }
+.brand-header.skoda { background: #14532D; }
+.brand-header.nytte { background: #001E50; }
+.brand-header.porsche { background: #B12704; }
+
+.scorer-list {
+  list-style: none;
+}
+
+.scorer-row {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.scorer-row:last-child { border-bottom: none; }
+
+.scorer-row.leader {
+  background: var(--gold-bg);
+  padding: 16px 20px;
+}
+
+.scorer-row.top5 {
+  background: var(--top5-bg);
+  font-weight: 600;
+}
+
+.scorer-row.empty .scorer-name {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.scorer-rank {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--dark-navy);
+  text-align: center;
+}
+
+.scorer-rank.medal {
+  font-size: 18px;
+}
+
+.scorer-name {
+  font-size: 14px;
+  color: var(--dark-navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scorer-row.leader .scorer-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.scorer-biler {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--moller-blue);
+  background: var(--cream);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.scorer-row.leader .scorer-biler {
+  background: var(--moller-blue);
+  color: var(--white);
+}
+
+/* ===== EMPTY/ERROR STATES ===== */
+.state-message {
+  text-align: center;
+  padding: 64px 32px;
+  color: var(--text-muted);
+}
+
+.state-message h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--dark-navy);
+}
+
+.state-message p {
+  font-size: 14px;
+}
+
+.error-banner {
+  background: #FFEBEE;
+  color: #C62828;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  border-left: 4px solid #C62828;
+}
+
+/* ===== CONFIG MODAL (first-time setup) ===== */
+.config-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 62, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.config-overlay.hidden { display: none; }
+
+.config-modal {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.config-modal h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--dark-navy);
+}
+
+.config-modal p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dark-navy);
+  margin-bottom: 6px;
+}
+
+.config-field input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  transition: border-color 0.2s ease;
+}
+
+.config-field input:focus {
+  outline: none;
+  border-color: var(--moller-blue);
+}
+
+.config-field small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.config-save {
+  background: var(--moller-blue);
+  color: var(--white);
+  border: none;
+  padding: 14px 24px;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s ease;
+}
+
+.config-save:hover { background: var(--coral); }
+
+.config-help {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--light-gray);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.config-help strong { color: var(--dark-navy); }
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+footer a {
+  color: var(--moller-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 720px) {
+  .header { padding: 16px 20px; }
+  .header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .brand-title { font-size: 14px; }
+  .controls { width: 100%; justify-content: space-between; }
+  .tab-nav { top: 130px; }
+  main { padding: 16px; }
+  .period-bar { padding: 16px; gap: 16px; }
+  .groups-grid { grid-template-columns: 1fr; }
+  .brands-grid { grid-template-columns: 1fr; }
+  .bracket-container { padding: 16px; }
+  .bracket-grid {
+    grid-template-columns: 1fr;
+    min-width: unset;
+  }
+  .bracket-stage { margin-bottom: 24px; }
+  .group-table td { padding: 10px 12px; font-size: 13px; }
+  .scorer-row { grid-template-columns: 40px 1fr auto; padding: 10px 16px; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== CONFIG MODAL (first-time setup) ===== -->
+<div class="config-overlay hidden" id="configOverlay">
+  <div class="config-modal">
+    <h2>Konfigurer datatilkobling</h2>
+    <p>Lim inn URL-en til Google Sheets-arket ditt. Arket må være publisert som CSV (Fil → Del → Publiser på nett).</p>
+    <div class="config-form">
+      <div class="config-field">
+        <label for="sheetUrl">Google Sheets URL</label>
+        <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." />
+        <small>Lim inn URL-en til regnearket. Vi henter individuelle ark automatisk.</small>
+      </div>
+      <button class="config-save" id="saveConfig">Lagre og last data</button>
+      <div class="config-help">
+        <strong>Trenger du hjelp?</strong> Se guiden i <code>SETUP.md</code> i prosjektmappen for steg-for-steg instruksjoner.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-name">Møller Bil</span>
+      <span class="brand-divider"></span>
+      <span class="brand-title">Salgskonkurranse VM 2026</span>
+    </div>
+    <div class="controls">
+      <span class="last-updated" id="lastUpdated">Aldri oppdatert</span>
+      <button class="refresh-btn" id="refreshBtn">
+        <span class="spinner"></span>
+        <span>Oppdater</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== TAB NAV ===== -->
+<nav class="tab-nav">
+  <div class="tab-inner">
+    <button class="tab active" data-tab="gruppespill">Gruppespill</button>
+    <button class="tab" data-tab="sluttspill">Sluttspill</button>
+    <button class="tab" data-tab="toppscorer">Toppscorer</button>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main>
+  <div id="errorContainer"></div>
+
+  <!-- GRUPPESPILL TAB -->
+  <section class="tab-panel active" id="tab-gruppespill">
+    <div class="period-bar" id="periodBar"></div>
+    <div class="section-title">Gruppespill — Topp 2 fra hver gruppe går videre</div>
+    <div class="groups-grid" id="groupsGrid">
+      <div class="state-message"><h2>Laster data...</h2></div>
+    </div>
+  </section>
+
+  <!-- SLUTTSPILL TAB -->
+  <section class="tab-panel" id="tab-sluttspill">
+    <div class="period-bar" id="periodBarBracket"></div>
+    <div class="section-title">Sluttspill — Bracket</div>
+    <div class="bracket-container" id="bracketContainer">
+      <div class="state-message"><h2>Laster bracket...</h2></div>
+    </div>
+  </section>
+
+  <!-- TOPPSCORER TAB -->
+  <section class="tab-panel" id="tab-toppscorer">
+    <div class="section-title">Toppscorerliste — De 10 beste selgerne per merke</div>
+    <div class="brands-grid" id="brandsGrid">
+      <div class="state-message"><h2>Laster toppscorere...</h2></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Møller Bil · Salgskonkurranse VM 2026 · Oppdateres manuelt fra Google Sheets
+</footer>
+
+<script>
+// ===========================================================================
+// CONFIGURATION
+// ===========================================================================
+// The Google Sheet must be published to the web as CSV.
+// We construct CSV URLs for each sheet tab using gid (sheet ID).
+// 
+// User configures the base URL (the spreadsheet ID part). 
+// We need 4 sheet GIDs - these are stored in localStorage after first setup,
+// OR they can be hardcoded once you set it up.
+//
+// EASIEST APPROACH: Use the published CSV URL directly per sheet.
+// User pastes 3 separate published-CSV URLs (one per sheet we need).
+// 
+// We need data from these sheets:
+// 1. Oversikt        - perioder + gruppespill tabeller + bracket
+// 2. Mål per lag     - poeng per lag + sum mål + gruppe
+// 3. Toppscorer      - de 10 beste per merke
+//
+// SIMPLER: We only need raw data. Let's read directly from Mål per lag and 
+// Salgsdata to compute everything client-side.
+// 
+// ACTUALLY simplest: read the already-computed views from Mål per lag (which 
+// has Poeng Gruppespill, KF, SF, Finale columns) and Toppscorer (which has 
+// the ranked lists).
+
+const CONFIG_KEY = 'mb_vm2026_config';
+
+let CONFIG = loadConfig();
+
+function loadConfig() {
+  try {
+    const stored = localStorage.getItem(CONFIG_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return null;
+}
+
+function saveConfig(cfg) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+  CONFIG = cfg;
+}
+
+// ===========================================================================
+// CSV PARSER (handles quoted fields, embedded commas/newlines)
+// ===========================================================================
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  let i = 0;
+  
+  while (i < text.length) {
+    const ch = text[i];
+    
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i+1] === '"') {
+          field += '"';
+          i += 2;
+        } else {
+          inQuotes = false;
+          i++;
+        }
+      } else {
+        field += ch;
+        i++;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+        i++;
+      } else if (ch === ',') {
+        row.push(field);
+        field = '';
+        i++;
+      } else if (ch === '\r') {
+        i++;
+      } else if (ch === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+        i++;
+      } else {
+        field += ch;
+        i++;
+      }
+    }
+  }
+  if (field !== '' || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
+// ===========================================================================
+// FETCH DATA from Google Sheets
+// ===========================================================================
+async function fetchSheet(url) {
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.text();
+}
+
+async function loadAllData() {
+  if (!CONFIG || !CONFIG.malPerLagUrl || !CONFIG.toppscorerUrl || !CONFIG.oversiktUrl) {
+    return null;
+  }
+  
+  const [malRaw, topRaw, oversiktRaw] = await Promise.all([
+    fetchSheet(CONFIG.malPerLagUrl),
+    fetchSheet(CONFIG.toppscorerUrl),
+    fetchSheet(CONFIG.oversiktUrl)
+  ]);
+  
+  return {
+    malPerLag: parseCSV(malRaw),
+    toppscorer: parseCSV(topRaw),
+    oversikt: parseCSV(oversiktRaw)
+  };
+}
+
+// ===========================================================================
+// PARSE: Mål per lag rows → array of { gruppe, lag, sumMal, poengG, poengKF, poengSF, poengF }
+// Expected layout (from your Excel):
+// Row 1: empty / note
+// Row 2: header
+// Rows 3-4: maybe empty (you said headers are at row 4 in original)
+// We need to find the right header row dynamically.
+// ===========================================================================
+function parseMalPerLag(rows) {
+  // Find header row - look for row containing "Lag" and "Sum mål"
+  let headerIdx = -1;
+  for (let i = 0; i < Math.min(10, rows.length); i++) {
+    const r = rows[i].map(c => (c || '').trim().toLowerCase());
+    if (r.some(c => c === 'lag') && r.some(c => c.includes('sum mål'))) {
+      headerIdx = i;
+      break;
+    }
+  }
+  if (headerIdx === -1) {
+    // Fallback: assume row 3 (index 3) - row 4 in Excel
+    headerIdx = 3;
+  }
+  
+  const header = rows[headerIdx].map(c => (c || '').trim());
+  const colIdx = name => header.findIndex(h => h.toLowerCase() === name.toLowerCase());
+  
+  const idxGruppe = colIdx('Gruppe');
+  const idxLag = colIdx('Lag');
+  const idxSumMal = colIdx('Sum mål');
+  const idxPoengG = colIdx('Poeng Gruppespill');
+  const idxPoengKF = colIdx('Poeng KF');
+  const idxPoengSF = colIdx('Poeng SF');
+  const idxPoengF = colIdx('Poeng Finale');
+  
+  const teams = [];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const lag = (r[idxLag] || '').trim();
+    if (!lag) continue;
+    const gruppe = parseInt((r[idxGruppe] || '').trim(), 10);
+    if (!gruppe || isNaN(gruppe)) continue;
+    
+    teams.push({
+      gruppe,
+      lag,
+      sumMal: parseNumber(r[idxSumMal]),
+      poengG: parseNumber(r[idxPoengG]),
+      poengKF: parseNumber(r[idxPoengKF]),
+      poengSF: parseNumber(r[idxPoengSF]),
+      poengF: parseNumber(r[idxPoengF])
+    });
+  }
+  return teams;
+}
+
+function parseNumber(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  // Handle Norwegian decimal comma
+  const cleaned = String(v).replace(/\s/g, '').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+// ===========================================================================
+// PARSE: Oversikt - we need the period table (Gruppespill/KF/SF/Finale dates)
+// and the bracket teams.
+// 
+// Period table structure: rows 7-10 in Excel (1-indexed), col B (name) F (fra) G (til)
+// Bracket structure: KF teams in col B rows 47-57, SF in col G, F in col L
+// ===========================================================================
+function parseOversikt(rows) {
+  const result = {
+    perioder: [],
+    bracket: { kf: [], sf: [], f: [], winner: null }
+  };
+  
+  // Find rows with period names
+  const periodNames = ['Gruppespill', 'Kvartfinale', 'Semifinale', 'Finale'];
+  for (const row of rows) {
+    if (!row || row.length < 2) continue;
+    for (let c = 0; c < Math.min(8, row.length); c++) {
+      const cell = (row[c] || '').trim();
+      if (periodNames.includes(cell)) {
+        // Look for two date strings to the right
+        let fra = null, til = null;
+        for (let cc = c + 1; cc < row.length && (!fra || !til); cc++) {
+          const v = (row[cc] || '').trim();
+          if (!v) continue;
+          if (looksLikeDate(v)) {
+            if (!fra) fra = v;
+            else if (!til) til = v;
+          }
+        }
+        if (fra && til) {
+          result.perioder.push({ name: cell, fra: parseDate(fra), til: parseDate(til) });
+        }
+      }
+    }
+  }
+  
+  // Bracket: find the bracket section. Look for "KVARTFINALE" header.
+  let bracketStart = -1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.some(c => (c || '').trim().toUpperCase() === 'KVARTFINALE')) {
+      bracketStart = i;
+      break;
+    }
+  }
+  
+  if (bracketStart >= 0) {
+    // Header row is bracketStart, team rows start at bracketStart + 2
+    // Based on the build: KF rows are 47,48,50,51,53,54,56,57 (Excel) = indices 46,47,49,50,52,53,55,56
+    // KF teams in col B (idx 1), poeng col C (idx 2)
+    // SF teams in col G (idx 6), poeng col H (idx 7), at rows 48,51,54,57 (Excel) = idx 47,50,53,56
+    // F teams in col L (idx 11), poeng col M (idx 12), at rows 51,54 = idx 50,53
+    
+    const offsets = {
+      kf: [
+        { teamRow: 2, teamCol: 1, poengCol: 2 },
+        { teamRow: 3, teamCol: 1, poengCol: 2 },
+        { teamRow: 5, teamCol: 1, poengCol: 2 },
+        { teamRow: 6, teamCol: 1, poengCol: 2 },
+        { teamRow: 8, teamCol: 1, poengCol: 2 },
+        { teamRow: 9, teamCol: 1, poengCol: 2 },
+        { teamRow: 11, teamCol: 1, poengCol: 2 },
+        { teamRow: 12, teamCol: 1, poengCol: 2 }
+      ],
+      sf: [
+        { teamRow: 3, teamCol: 6, poengCol: 7 },
+        { teamRow: 6, teamCol: 6, poengCol: 7 },
+        { teamRow: 9, teamCol: 6, poengCol: 7 },
+        { teamRow: 12, teamCol: 6, poengCol: 7 }
+      ],
+      f: [
+        { teamRow: 6, teamCol: 11, poengCol: 12 },
+        { teamRow: 9, teamCol: 11, poengCol: 12 }
+      ]
+    };
+    
+    const getCell = (rowOffset, col) => {
+      const r = rows[bracketStart + rowOffset];
+      if (!r) return '';
+      return (r[col] || '').trim();
+    };
+    
+    result.bracket.kf = offsets.kf.map(o => ({
+      lag: getCell(o.teamRow, o.teamCol),
+      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
+    }));
+    result.bracket.sf = offsets.sf.map(o => ({
+      lag: getCell(o.teamRow, o.teamCol),
+      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
+    }));
+    result.bracket.f = offsets.f.map(o => ({
+      lag: getCell(o.teamRow, o.teamCol),
+      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
+    }));
+    
+    // Winner: highest of f
+    if (result.bracket.f.length === 2 && result.bracket.f[0].lag && result.bracket.f[1].lag) {
+      const [t1, t2] = result.bracket.f;
+      if (t1.poeng > t2.poeng) result.bracket.winner = t1.lag;
+      else if (t2.poeng > t1.poeng) result.bracket.winner = t2.lag;
+      else result.bracket.winner = 'Uavgjort';
+    }
+  }
+  
+  return result;
+}
+
+function looksLikeDate(s) {
+  return /^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
+}
+
+function parseDate(s) {
+  // Try DD.MM.YYYY
+  const m1 = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  if (m1) {
+    let [, d, mo, y] = m1;
+    if (y.length === 2) y = '20' + y;
+    return new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+  }
+  // Try ISO
+  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) {
+    return new Date(parseInt(m2[1]), parseInt(m2[2]) - 1, parseInt(m2[3]));
+  }
+  return null;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
+
+function getPeriodStatus(period) {
+  if (!period.fra || !period.til) return 'upcoming';
+  const now = new Date();
+  if (now < period.fra) return 'upcoming';
+  if (now > period.til) return 'completed';
+  return 'active';
+}
+
+// ===========================================================================
+// PARSE TOPPSCORER
+// We look for brand headers in the sheet and read 10 rows below each.
+// Brand headers: VOLKSWAGEN, AUDI, ŠKODA / SKODA, VW NYTTEKJØRETØY, PORSCHE
+// Each table has header row with #, Selger, Biler then 10 rows
+// ===========================================================================
+function parseToppscorer(rows) {
+  const brandLabels = {
+    'VOLKSWAGEN': 'vw',
+    'AUDI': 'audi',
+    'ŠKODA': 'skoda',
+    'SKODA': 'skoda',
+    'VW NYTTEKJØRETØY': 'nytte',
+    'PORSCHE': 'porsche'
+  };
+  
+  const brands = {
+    vw: { name: 'Volkswagen', class: 'vw', sellers: [] },
+    audi: { name: 'Audi', class: 'audi', sellers: [] },
+    skoda: { name: 'Škoda', class: 'skoda', sellers: [] },
+    nytte: { name: 'VW Nyttekjøretøy', class: 'nytte', sellers: [] },
+    porsche: { name: 'Porsche', class: 'porsche', sellers: [] }
+  };
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    for (let c = 0; c < row.length; c++) {
+      const cell = (row[c] || '').trim().toUpperCase();
+      if (brandLabels[cell]) {
+        const brandKey = brandLabels[cell];
+        // Header row at i+1, data rows at i+2 to i+11
+        // Selger is at column c+1, Biler at c+2 (since # is at c)
+        // But the header is merged across c..c+2
+        // Try to find "Selger" header first
+        const headerRow = rows[i + 1];
+        if (!headerRow) continue;
+        
+        // Find Selger col
+        let selgerCol = -1, bilerCol = -1;
+        for (let cc = c; cc < c + 4 && cc < headerRow.length; cc++) {
+          const h = (headerRow[cc] || '').trim().toLowerCase();
+          if (h === 'selger') selgerCol = cc;
+          if (h === 'biler') bilerCol = cc;
+        }
+        if (selgerCol === -1) selgerCol = c + 1;
+        if (bilerCol === -1) bilerCol = c + 2;
+        
+        // Read 10 rows
+        for (let k = 0; k < 10; k++) {
+          const dataRow = rows[i + 2 + k];
+          if (!dataRow) break;
+          const selger = (dataRow[selgerCol] || '').trim();
+          const bilerRaw = (dataRow[bilerCol] || '').trim();
+          if (!selger || selger.toLowerCase().includes('venter')) {
+            brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+          } else {
+            brands[brandKey].sellers.push({
+              rank: k + 1,
+              name: selger,
+              biler: parseNumber(bilerRaw)
+            });
+          }
+        }
+        // Don't continue scanning for other brands in this row segment
+        break;
+      }
+    }
+  }
+  
+  return brands;
+}
+
+// ===========================================================================
+// RENDER: Period bar
+// ===========================================================================
+function renderPeriodBar(perioder, containerId) {
+  const container = document.getElementById(containerId);
+  if (!perioder || perioder.length === 0) {
+    container.innerHTML = '<div class="period-item"><span class="period-label">Perioder</span><span class="period-name">Ikke konfigurert</span></div>';
+    return;
+  }
+  
+  const today = new Date();
+  
+  container.innerHTML = perioder.map(p => {
+    const status = getPeriodStatus(p);
+    const statusLabel = { active: 'Aktiv nå', upcoming: 'Kommer', completed: 'Ferdig' }[status];
+    const statusClass = { active: 'status-active', upcoming: 'status-upcoming', completed: 'status-completed' }[status];
+    return `
+      <div class="period-item">
+        <span class="period-label">Runde</span>
+        <span class="period-name">${p.name}</span>
+        <span class="period-dates">${formatDate(p.fra)} – ${formatDate(p.til)}</span>
+        <span class="period-status ${statusClass}">${statusLabel}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===========================================================================
+// RENDER: Group tables
+// ===========================================================================
+function renderGroups(teams) {
+  const container = document.getElementById('groupsGrid');
+  if (!teams || teams.length === 0) {
+    container.innerHTML = '<div class="state-message"><h2>Ingen lagdata</h2><p>Sjekk at «Mål per lag»-arket er publisert riktig.</p></div>';
+    return;
+  }
+  
+  const groups = [1, 2, 3, 4];
+  container.innerHTML = groups.map(g => {
+    const groupTeams = teams
+      .filter(t => t.gruppe === g)
+      .sort((a, b) => b.poengG - a.poengG || b.sumMal - a.sumMal);
+    
+    if (groupTeams.length === 0) return '';
+    
+    return `
+      <div class="group-card">
+        <div class="group-header">Gruppe ${g}</div>
+        <table class="group-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Lag</th>
+              <th class="center">Mål</th>
+              <th class="center">Poeng</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${groupTeams.map((t, i) => `
+              <tr class="${i < 2 ? 'qualified' : ''}">
+                <td class="rank">${i + 1}</td>
+                <td>${i < 2 ? '<span class="qualified-badge"></span>' : ''}${escapeHtml(t.lag)}</td>
+                <td class="mal">${t.sumMal.toFixed(1)}</td>
+                <td class="poeng">${t.poengG.toFixed(1)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===========================================================================
+// RENDER: Bracket
+// ===========================================================================
+function renderBracket(bracket) {
+  const container = document.getElementById('bracketContainer');
+  if (!bracket || (!bracket.kf.length && !bracket.sf.length && !bracket.f.length)) {
+    container.innerHTML = '<div class="state-message"><h2>Bracket ikke startet</h2><p>Lag må fylles inn manuelt i Excel-arket.</p></div>';
+    return;
+  }
+  
+  // Determine winners for visual styling: in each KF pair (0,1), (2,3), etc., 
+  // the team with higher poeng is the "winner"
+  const pairWinner = (a, b) => {
+    if (!a.lag || !b.lag) return null;
+    if (a.poeng > b.poeng) return 'a';
+    if (b.poeng > a.poeng) return 'b';
+    return null;
+  };
+  
+  const renderTeam = (team, role) => {
+    if (!team || !team.lag) {
+      return `<div class="match-team"><span class="team-name empty">— Ikke valgt —</span></div>`;
+    }
+    const cls = role === 'winner' ? 'winner' : (role === 'loser' ? 'loser' : '');
+    return `
+      <div class="match-team ${cls}">
+        <span class="team-name">${escapeHtml(team.lag)}</span>
+        <span class="team-poeng">${team.poeng.toFixed(1)}</span>
+      </div>
+    `;
+  };
+  
+  const renderMatch = (a, b) => {
+    const w = pairWinner(a, b);
+    const aRole = w === 'a' ? 'winner' : (w === 'b' ? 'loser' : '');
+    const bRole = w === 'b' ? 'winner' : (w === 'a' ? 'loser' : '');
+    return `<div class="match">${renderTeam(a, aRole)}${renderTeam(b, bRole)}</div>`;
+  };
+  
+  // KF: 4 matches
+  const kfMatches = [];
+  for (let i = 0; i < 8; i += 2) {
+    kfMatches.push(renderMatch(bracket.kf[i] || {lag:'',poeng:0}, bracket.kf[i+1] || {lag:'',poeng:0}));
+  }
+  
+  // SF: 2 matches
+  const sfMatches = [];
+  for (let i = 0; i < 4; i += 2) {
+    sfMatches.push(renderMatch(bracket.sf[i] || {lag:'',poeng:0}, bracket.sf[i+1] || {lag:'',poeng:0}));
+  }
+  
+  // F: 1 match
+  const fMatches = [renderMatch(bracket.f[0] || {lag:'',poeng:0}, bracket.f[1] || {lag:'',poeng:0})];
+  
+  const winnerHtml = bracket.winner ?
+    `<div class="winner-card">
+      <span class="winner-trophy">🏆</span>
+      <div class="winner-label">Vinner</div>
+      <div class="winner-name">${escapeHtml(bracket.winner)}</div>
+    </div>` :
+    `<div class="winner-card">
+      <span class="winner-trophy">🏆</span>
+      <div class="winner-label">Vinner</div>
+      <div class="winner-name empty">Ikke avgjort</div>
+    </div>`;
+  
+  container.innerHTML = `
+    <div class="bracket-grid">
+      <div class="bracket-stage kvartfinale">
+        <div class="bracket-stage-header">Kvartfinale</div>
+        <div class="matches">${kfMatches.join('')}</div>
+      </div>
+      <div class="bracket-stage semifinale">
+        <div class="bracket-stage-header">Semifinale</div>
+        <div class="matches">${sfMatches.join('')}</div>
+      </div>
+      <div class="bracket-stage finale">
+        <div class="bracket-stage-header">Finale</div>
+        <div class="matches">${fMatches.join('')}</div>
+      </div>
+      <div class="bracket-stage winner-stage">
+        ${winnerHtml}
+      </div>
+    </div>
+  `;
+}
+
+// ===========================================================================
+// RENDER: Toppscorer
+// ===========================================================================
+function renderToppscorer(brands) {
+  const container = document.getElementById('brandsGrid');
+  const order = ['vw', 'audi', 'skoda', 'nytte', 'porsche'];
+  
+  container.innerHTML = order.map(key => {
+    const b = brands[key];
+    if (!b) return '';
+    
+    const sellers = b.sellers.length > 0 ? b.sellers : Array.from({length: 10}, (_, i) => ({rank: i+1, name: '', biler: 0}));
+    
+    return `
+      <div class="brand-card">
+        <div class="brand-header ${b.class}">${b.name}</div>
+        <ul class="scorer-list">
+          ${sellers.map(s => {
+            const isLeader = s.rank === 1 && s.name;
+            const isTop5 = s.rank <= 5 && s.name;
+            const isEmpty = !s.name;
+            const cls = isLeader ? 'leader' : (isTop5 ? 'top5' : '') + (isEmpty ? ' empty' : '');
+            const rankDisplay = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : s.rank;
+            const rankCls = s.rank <= 3 && s.name ? 'medal' : '';
+            return `
+              <li class="scorer-row ${cls}">
+                <span class="scorer-rank ${rankCls}">${rankDisplay}</span>
+                <span class="scorer-name">${escapeHtml(s.name) || (s.rank === 1 ? 'Venter på data' : '—')}</span>
+                <span class="scorer-biler">${s.name ? s.biler : '—'}</span>
+              </li>
+            `;
+          }).join('')}
+        </ul>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===========================================================================
+// HELPERS
+// ===========================================================================
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function showError(msg) {
+  document.getElementById('errorContainer').innerHTML = `<div class="error-banner">${escapeHtml(msg)}</div>`;
+}
+
+function clearError() {
+  document.getElementById('errorContainer').innerHTML = '';
+}
+
+// ===========================================================================
+// REFRESH
+// ===========================================================================
+async function refresh() {
+  if (!CONFIG) {
+    document.getElementById('configOverlay').classList.remove('hidden');
+    return;
+  }
+  
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  clearError();
+  
+  try {
+    const data = await loadAllData();
+    if (!data) {
+      showError('Konfigurasjon mangler. Klikk Oppdater på nytt for å sette opp.');
+      document.getElementById('configOverlay').classList.remove('hidden');
+      return;
+    }
+    
+    const teams = parseMalPerLag(data.malPerLag);
+    const oversikt = parseOversikt(data.oversikt);
+    const brands = parseToppscorer(data.toppscorer);
+    
+    renderPeriodBar(oversikt.perioder, 'periodBar');
+    renderPeriodBar(oversikt.perioder, 'periodBarBracket');
+    renderGroups(teams);
+    renderBracket(oversikt.bracket);
+    renderToppscorer(brands);
+    
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent = 
+      `Oppdatert ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  } catch (err) {
+    console.error(err);
+    showError('Kunne ikke laste data: ' + err.message + '. Sjekk at Google Sheets er publisert som CSV.');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// ===========================================================================
+// INIT
+// ===========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+  
+  // Refresh button
+  document.getElementById('refreshBtn').addEventListener('click', refresh);
+  
+  // Config save
+  document.getElementById('saveConfig').addEventListener('click', () => {
+    const url = document.getElementById('sheetUrl').value.trim();
+    if (!url) { alert('Lim inn en URL'); return; }
+    
+    // Extract spreadsheet ID
+    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (!m) { alert('Ugyldig Google Sheets URL'); return; }
+    const id = m[1];
+    
+    // Build CSV URLs for each sheet by name
+    // Format: https://docs.google.com/spreadsheets/d/{ID}/gviz/tq?tqx=out:csv&sheet={NAME}
+    const buildUrl = sheetName => 
+      `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+    
+    saveConfig({
+      spreadsheetId: id,
+      malPerLagUrl: buildUrl('Mål per lag'),
+      toppscorerUrl: buildUrl('Toppscorer'),
+      oversiktUrl: buildUrl('Oversikt')
+    });
+    
+    document.getElementById('configOverlay').classList.add('hidden');
+    refresh();
+  });
+  
+  // Initial load
+  if (CONFIG) {
+    refresh();
+  } else {
+    document.getElementById('configOverlay').classList.remove('hidden');
+  }
+});
+</script>
+
+</body>
+</html>
