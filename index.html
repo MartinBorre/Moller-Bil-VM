@@ -585,10 +585,10 @@ main {
 }
 
 .brand-header.vw { background: #001E50; }
-.brand-header.audi { background: #0D0D0D; }
+.brand-header.audi { background: #B12704; }
 .brand-header.skoda { background: #14532D; }
 .brand-header.nytte { background: #001E50; }
-.brand-header.porsche { background: #B12704; }
+.brand-header.porsche { background: #0D0D0D; }
 
 .scorer-list {
   list-style: none;
@@ -1443,7 +1443,6 @@ function renderPeriodBar(perioder, containerId) {
       const statusClass = { active: 'status-active', upcoming: 'status-upcoming', completed: 'status-completed' }[status];
       return `
         <div class="period-item">
-          <span class="period-label">Varighet</span>
           <span class="period-name">${name}</span>
           <span class="period-dates">${formatDate(p.fra)} – ${formatDate(p.til)}</span>
           <span class="period-status ${statusClass}">${statusLabel}</span>
@@ -1452,7 +1451,6 @@ function renderPeriodBar(perioder, containerId) {
     } else {
       return `
         <div class="period-item">
-          <span class="period-label">Varighet</span>
           <span class="period-name">${name}</span>
           <span class="period-dates">— ikke satt —</span>
         </div>
@@ -1530,7 +1528,7 @@ function renderBracket(bracket) {
   
   const renderTeam = (team, role) => {
     if (!team || !team.lag) {
-      return `<div class="match-team"><span class="team-name empty">— Ikke valgt —</span></div>`;
+      return `<div class="match-team"><span class="team-name empty">TBD</span></div>`;
     }
     const cls = role === 'winner' ? 'winner' : (role === 'loser' ? 'loser' : '');
     return `
