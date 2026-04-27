@@ -662,6 +662,22 @@ main {
   color: var(--white);
 }
 
+.formula-note {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--white);
+  border-radius: 8px;
+  border-left: 3px solid var(--moller-blue);
+  font-size: 13px;
+  color: var(--dark-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.formula-note strong {
+  font-weight: 700;
+  color: var(--moller-blue);
+}
+
 /* ===== EMPTY/ERROR STATES ===== */
 .state-message {
   text-align: center;
@@ -900,6 +916,9 @@ footer a {
     <div class="groups-grid" id="groupsGrid">
       <div class="state-message"><h2>Laster data...</h2></div>
     </div>
+    <div class="formula-note">
+      <strong>Poeng</strong> = antall kontrakter (eksterne salg) / salgsmål per dag (sum alle merker)
+    </div>
   </section>
 
   <!-- SLUTTSPILL TAB -->
@@ -908,6 +927,9 @@ footer a {
     <div class="section-title">Sluttspill — Bracket</div>
     <div class="bracket-container" id="bracketContainer">
       <div class="state-message"><h2>Laster bracket...</h2></div>
+    </div>
+    <div class="formula-note">
+      <strong>Poeng</strong> = antall kontrakter (eksterne salg) / salgsmål per dag (sum alle merker)
     </div>
   </section>
 
@@ -1128,41 +1150,53 @@ function parseOversikt(rows) {
     bracket: { kf: [], sf: [], f: [], winner: null }
   };
   
-  // Periods are at fixed rows 7-10 in Oversikt (1-indexed) = indices 6-9 (0-indexed).
-  // Layout: col F (idx 5) = fra dato, col G (idx 6) = til dato.
-  // Names may be missing from CSV due to merged cells, so we use position.
   const periodNames = ['Gruppespill', 'Kvartfinale', 'Semifinale', 'Finale'];
-  for (let i = 0; i < 4; i++) {
-    const rowIdx = 6 + i; // rows 7-10 in Excel = indices 6-9
-    const row = rows[rowIdx];
-    if (!row) continue;
-    
-    // Try to find dates by scanning the row for date-looking values
-    let fra = null, til = null;
+  
+  // Find the period table: scan for the first row that has at least 2 valid dates,
+  // then check if the next 3 rows also have date pairs. If yes, this is the period block.
+  // This works regardless of how many empty rows gviz strips from the top.
+  const findDatesInRow = (row) => {
+    if (!row) return [];
+    const dates = [];
     for (let c = 0; c < row.length; c++) {
       const v = (row[c] || '').trim();
       if (!v) continue;
       const parsed = parseDate(v);
-      if (parsed) {
-        if (!fra) fra = parsed;
-        else if (!til) { til = parsed; break; }
-      }
+      if (parsed) dates.push(parsed);
     }
-    
-    // Try to find name (in case it's there in some cell), else use the standard name
-    let name = periodNames[i];
-    for (let c = 0; c < Math.min(8, row.length); c++) {
-      const v = (row[c] || '').trim();
-      if (periodNames.includes(v)) {
-        name = v;
-        break;
-      }
+    return dates;
+  };
+  
+  let periodStart = -1;
+  for (let i = 0; i < rows.length - 3; i++) {
+    const d0 = findDatesInRow(rows[i]);
+    const d1 = findDatesInRow(rows[i+1]);
+    const d2 = findDatesInRow(rows[i+2]);
+    const d3 = findDatesInRow(rows[i+3]);
+    if (d0.length >= 2 && d1.length >= 2 && d2.length >= 2 && d3.length >= 2) {
+      periodStart = i;
+      break;
     }
-    
-    if (fra && til) {
-      result.perioder.push({ name, fra, til });
-    } else if (fra) {
-      result.perioder.push({ name, fra, til: fra });
+  }
+  
+  if (periodStart >= 0) {
+    for (let i = 0; i < 4; i++) {
+      const row = rows[periodStart + i];
+      const dates = findDatesInRow(row);
+      
+      // Try to find the period name in this row (may be missing due to merged cells)
+      let name = periodNames[i]; // fallback to standard name by position
+      for (let c = 0; c < Math.min(8, row.length); c++) {
+        const v = (row[c] || '').trim();
+        if (periodNames.includes(v)) {
+          name = v;
+          break;
+        }
+      }
+      
+      if (dates.length >= 2) {
+        result.perioder.push({ name, fra: dates[0], til: dates[1] });
+      }
     }
   }
   
@@ -1237,42 +1271,52 @@ function parseDate(s) {
   // Strip surrounding quotes
   s = s.replace(/^["']|["']$/g, '').trim();
   
-  // Format 1: DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
-  let m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  // Reject very short strings that can't be a date
+  if (s.length < 6) return null;
+  
+  // Format 1: DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY (year MUST be 4 digits)
+  let m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
   if (m) {
-    let [, d, mo, y] = m;
-    if (y.length === 2) y = '20' + y;
-    const dt = new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
-    if (!isNaN(dt.getTime())) return dt;
+    const d = parseInt(m[1]);
+    const mo = parseInt(m[2]);
+    const y = parseInt(m[3]);
+    if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2000 && y <= 2100) {
+      const dt = new Date(y, mo - 1, d);
+      if (!isNaN(dt.getTime())) return dt;
+    }
   }
   
   // Format 2: ISO YYYY-MM-DD
   m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (m) {
-    const dt = new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  
-  // Format 3: Google's "Date(2026,3,1)" - month is 0-indexed
-  m = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})/);
-  if (m) {
-    const dt = new Date(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]));
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  
-  // Format 4: Excel serial date (a number > 30000)
-  if (/^\d+(\.\d+)?$/.test(s)) {
-    const n = parseFloat(s);
-    if (n > 30000 && n < 100000) {
-      // Excel epoch: Dec 30 1899
-      const dt = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+    const y = parseInt(m[1]);
+    const mo = parseInt(m[2]);
+    const d = parseInt(m[3]);
+    if (y >= 2000 && y <= 2100 && mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+      const dt = new Date(y, mo - 1, d);
       if (!isNaN(dt.getTime())) return dt;
     }
   }
   
-  // Format 5: full text date ("April 1, 2026" etc) — try Date constructor
-  const dt = new Date(s);
-  if (!isNaN(dt.getTime()) && dt.getFullYear() > 2000) return dt;
+  // Format 3: Google's "Date(2026,3,1)" - month is 0-indexed in this format
+  m = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})/);
+  if (m) {
+    const y = parseInt(m[1]);
+    if (y >= 2000 && y <= 2100) {
+      const dt = new Date(y, parseInt(m[2]), parseInt(m[3]));
+      if (!isNaN(dt.getTime())) return dt;
+    }
+  }
+  
+  // Format 4: Excel serial date (a number > 30000)
+  // Only accept if the string is purely numeric AND in valid serial range
+  if (/^\d{5,6}(\.\d+)?$/.test(s)) {
+    const n = parseFloat(s);
+    if (n >= 36526 && n <= 73050) { // ~Jan 2000 to ~Dec 2099
+      const dt = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+      if (!isNaN(dt.getTime())) return dt;
+    }
+  }
   
   return null;
 }
@@ -1311,49 +1355,68 @@ function parseToppscorer(rows) {
     porsche: { name: 'Porsche', class: 'porsche', sellers: [] }
   };
   
-  // Toppscorer has fixed-position tables. Based on the Excel build:
-  //   Row 5 (idx 4):  brand headers VOLKSWAGEN (col B/idx 1) & AUDI (col F/idx 5)
-  //   Row 6 (idx 5):  column subheaders (#, Selger, Biler)
-  //   Rows 7-16:      10 data rows for VW (cols B-D) and Audi (cols F-H)
-  //   Row 19 (idx 18): brand headers ŠKODA & VW NYTTEKJØRETØY
-  //   Row 20:         subheaders
-  //   Rows 21-30:     10 data rows for Skoda and Nytte
-  //   Row 33-34:      Porsche header
-  //   Rows 35-44:     Porsche data (currently empty)
-  //
-  // Each brand uses 3 columns: rank, selger, biler.
-  // Names: rank in col c, selger in c+1, biler in c+2.
+  // Strategy: gviz CSV may strip leading empty rows. So we cannot rely on absolute
+  // row numbers from Excel. Instead, find rows containing "Selger" (the subheader 
+  // for each table block) and read 10 data rows below each.
+  // 
+  // There are 3 such "Selger" rows:
+  //   1st block: VW (cols ~1-3) + Audi (cols ~5-7)
+  //   2nd block: Skoda (cols ~1-3) + Nytte (cols ~5-7)
+  //   3rd block: Porsche (cols ~1-3) only
   
-  const tables = [
-    // brandKey, brandHeaderRowIdx, dataStartRowIdx, rankCol
-    ['vw',      4,  6,  1],   // VW: header row 5, data starts row 7, rank col B (idx 1)
-    ['audi',    4,  6,  5],   // Audi: same row, col F (idx 5)
-    ['skoda',   18, 20, 1],   // Skoda: header row 19, data row 21
-    ['nytte',   18, 20, 5],   // Nytte: same row 19
-    ['porsche', 32, 34, 1]    // Porsche: header row 33, data row 35
+  const subheaderRows = [];
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i] || [];
+    // Count occurrences of "Selger" in this row
+    const selgerPositions = [];
+    for (let c = 0; c < row.length; c++) {
+      if ((row[c] || '').trim().toLowerCase() === 'selger') {
+        selgerPositions.push(c);
+      }
+    }
+    if (selgerPositions.length > 0) {
+      subheaderRows.push({ rowIdx: i, selgerCols: selgerPositions });
+    }
+  }
+  
+  // Map subheader blocks to brand pairs:
+  //   block 0 → vw + audi
+  //   block 1 → skoda + nytte
+  //   block 2 → porsche
+  const blockBrandMap = [
+    ['vw', 'audi'],
+    ['skoda', 'nytte'],
+    ['porsche']
   ];
   
-  for (const [brandKey, headerRowIdx, dataStartIdx, rankCol] of tables) {
-    const selgerCol = rankCol + 1;
-    const bilerCol = rankCol + 2;
+  for (let blockIdx = 0; blockIdx < subheaderRows.length && blockIdx < blockBrandMap.length; blockIdx++) {
+    const block = subheaderRows[blockIdx];
+    const brandsInBlock = blockBrandMap[blockIdx];
     
-    for (let k = 0; k < 10; k++) {
-      const dataRow = rows[dataStartIdx + k];
-      if (!dataRow) {
-        brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
-        continue;
-      }
-      const selger = (dataRow[selgerCol] || '').trim();
-      const bilerRaw = (dataRow[bilerCol] || '').trim();
+    for (let b = 0; b < brandsInBlock.length && b < block.selgerCols.length; b++) {
+      const brandKey = brandsInBlock[b];
+      const selgerCol = block.selgerCols[b];
+      const bilerCol = selgerCol + 1;
       
-      if (!selger || /venter/i.test(selger)) {
-        brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
-      } else {
-        brands[brandKey].sellers.push({
-          rank: k + 1,
-          name: selger,
-          biler: parseNumber(bilerRaw)
-        });
+      // Read 10 data rows starting right after the subheader
+      for (let k = 0; k < 10; k++) {
+        const dataRow = rows[block.rowIdx + 1 + k];
+        if (!dataRow) {
+          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+          continue;
+        }
+        const selger = (dataRow[selgerCol] || '').trim();
+        const bilerRaw = (dataRow[bilerCol] || '').trim();
+        
+        if (!selger || /venter/i.test(selger)) {
+          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+        } else {
+          brands[brandKey].sellers.push({
+            rank: k + 1,
+            name: selger,
+            biler: parseNumber(bilerRaw)
+          });
+        }
       }
     }
   }
