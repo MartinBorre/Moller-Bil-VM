@@ -40,7 +40,34 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  position: relative;
 }
+
+/* Background image layer - subtle, faded */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: var(--bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.18;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Optional: gradient overlay to ensure readability */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(237, 235, 229, 0.3) 0%, rgba(237, 235, 229, 0.85) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.header, .tab-nav, main, footer { position: relative; z-index: 2; }
 
 /* ===== HEADER ===== */
 .header {
@@ -216,7 +243,7 @@ main {
   border-radius: 8px;
   padding: 20px 24px;
   margin-bottom: 32px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
@@ -289,8 +316,8 @@ main {
 
 .groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
   margin-bottom: 48px;
 }
 
@@ -298,7 +325,7 @@ main {
   background: var(--white);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -322,12 +349,17 @@ main {
   border-collapse: collapse;
 }
 
+.group-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
 .group-table thead th {
   background: var(--dark-navy);
   color: var(--white);
-  padding: 10px 16px;
+  padding: 8px 12px;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
   text-align: left;
@@ -353,15 +385,10 @@ main {
   background: #D4EDDA;
 }
 
-.group-table td {
-  padding: 12px 16px;
-  font-size: 14px;
-}
-
 .group-table td.rank {
   font-weight: 700;
   color: var(--dark-navy);
-  width: 40px;
+  width: 32px;
   text-align: center;
 }
 
@@ -396,7 +423,7 @@ main {
   background: var(--white);
   border-radius: 12px;
   padding: 32px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   overflow-x: auto;
   margin-bottom: 32px;
 }
@@ -536,24 +563,25 @@ main {
 /* ===== TOPPSCORER ===== */
 .brands-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
 }
 
 .brand-card {
   background: var(--white);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .brand-header {
-  padding: 16px 20px;
+  padding: 12px 14px;
   font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 3px;
+  font-size: 13px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--white);
+  text-align: center;
 }
 
 .brand-header.vw { background: #001E50; }
@@ -568,18 +596,18 @@ main {
 
 .scorer-row {
   display: grid;
-  grid-template-columns: 50px 1fr auto;
+  grid-template-columns: 32px 1fr auto;
   align-items: center;
-  padding: 12px 20px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--border);
-  gap: 12px;
+  gap: 6px;
 }
 
 .scorer-row:last-child { border-bottom: none; }
 
 .scorer-row.leader {
   background: var(--gold-bg);
-  padding: 16px 20px;
+  padding: 12px 10px;
 }
 
 .scorer-row.top5 {
@@ -595,17 +623,17 @@ main {
 .scorer-rank {
   font-family: 'DM Mono', monospace;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--dark-navy);
   text-align: center;
 }
 
 .scorer-rank.medal {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .scorer-name {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--dark-navy);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -614,17 +642,19 @@ main {
 
 .scorer-row.leader .scorer-name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .scorer-biler {
   font-family: 'DM Mono', monospace;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--moller-blue);
   background: var(--cream);
-  padding: 4px 12px;
-  border-radius: 12px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  min-width: 28px;
+  text-align: center;
 }
 
 .scorer-row.leader .scorer-biler {
@@ -781,6 +811,12 @@ footer a {
   font-weight: 600;
 }
 
+/* ===== TABLET ===== */
+@media (max-width: 1100px) {
+  .groups-grid { grid-template-columns: repeat(2, 1fr); }
+  .brands-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 720px) {
   .header { padding: 16px 20px; }
@@ -790,8 +826,8 @@ footer a {
   .tab-nav { top: 130px; }
   main { padding: 16px; }
   .period-bar { padding: 16px; gap: 16px; }
-  .groups-grid { grid-template-columns: 1fr; }
-  .brands-grid { grid-template-columns: 1fr; }
+  .groups-grid { grid-template-columns: 1fr; gap: 16px; }
+  .brands-grid { grid-template-columns: 1fr; gap: 16px; }
   .bracket-container { padding: 16px; }
   .bracket-grid {
     grid-template-columns: 1fr;
@@ -800,6 +836,8 @@ footer a {
   .bracket-stage { margin-bottom: 24px; }
   .group-table td { padding: 10px 12px; font-size: 13px; }
   .scorer-row { grid-template-columns: 40px 1fr auto; padding: 10px 16px; gap: 8px; }
+  .scorer-name { font-size: 13px; }
+  .scorer-row.leader .scorer-name { font-size: 14px; }
 }
 </style>
 </head>
@@ -1087,27 +1125,35 @@ function parseOversikt(rows) {
     bracket: { kf: [], sf: [], f: [], winner: null }
   };
   
-  // Find rows with period names
+  // Find rows with period names. The period table is at Oversikt rows 7-10:
+  //   col B (idx 1) = name (merged across B-E)
+  //   col F (idx 5) = fra dato
+  //   col G (idx 6) = til dato
   const periodNames = ['Gruppespill', 'Kvartfinale', 'Semifinale', 'Finale'];
   for (const row of rows) {
     if (!row || row.length < 2) continue;
     for (let c = 0; c < Math.min(8, row.length); c++) {
       const cell = (row[c] || '').trim();
-      if (periodNames.includes(cell)) {
-        // Look for two date strings to the right
-        let fra = null, til = null;
-        for (let cc = c + 1; cc < row.length && (!fra || !til); cc++) {
-          const v = (row[cc] || '').trim();
-          if (!v) continue;
-          if (looksLikeDate(v)) {
-            if (!fra) fra = v;
-            else if (!til) til = v;
-          }
-        }
-        if (fra && til) {
-          result.perioder.push({ name: cell, fra: parseDate(fra), til: parseDate(til) });
+      if (!periodNames.includes(cell)) continue;
+      
+      // Look for two date-looking values in the rest of the row
+      let fra = null, til = null;
+      for (let cc = c + 1; cc < row.length; cc++) {
+        const v = (row[cc] || '').trim();
+        if (!v) continue;
+        const parsed = parseDate(v);
+        if (parsed) {
+          if (!fra) fra = parsed;
+          else if (!til) { til = parsed; break; }
         }
       }
+      if (fra && til) {
+        result.perioder.push({ name: cell, fra, til });
+      } else if (fra) {
+        // Got start but not end - still record so we know period exists
+        result.perioder.push({ name: cell, fra, til: fra });
+      }
+      break;
     }
   }
   
@@ -1122,12 +1168,6 @@ function parseOversikt(rows) {
   }
   
   if (bracketStart >= 0) {
-    // Header row is bracketStart, team rows start at bracketStart + 2
-    // Based on the build: KF rows are 47,48,50,51,53,54,56,57 (Excel) = indices 46,47,49,50,52,53,55,56
-    // KF teams in col B (idx 1), poeng col C (idx 2)
-    // SF teams in col G (idx 6), poeng col H (idx 7), at rows 48,51,54,57 (Excel) = idx 47,50,53,56
-    // F teams in col L (idx 11), poeng col M (idx 12), at rows 51,54 = idx 50,53
-    
     const offsets = {
       kf: [
         { teamRow: 2, teamCol: 1, poengCol: 2 },
@@ -1170,7 +1210,6 @@ function parseOversikt(rows) {
       poeng: parseNumber(getCell(o.teamRow, o.poengCol))
     }));
     
-    // Winner: highest of f
     if (result.bracket.f.length === 2 && result.bracket.f[0].lag && result.bracket.f[1].lag) {
       const [t1, t2] = result.bracket.f;
       if (t1.poeng > t2.poeng) result.bracket.winner = t1.lag;
@@ -1182,24 +1221,55 @@ function parseOversikt(rows) {
   return result;
 }
 
-function looksLikeDate(s) {
-  return /^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  
+  // Strip surrounding quotes
+  s = s.replace(/^["']|["']$/g, '').trim();
+  
+  // Format 1: DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
+  let m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  if (m) {
+    let [, d, mo, y] = m;
+    if (y.length === 2) y = '20' + y;
+    const dt = new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  
+  // Format 2: ISO YYYY-MM-DD
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const dt = new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  
+  // Format 3: Google's "Date(2026,3,1)" - month is 0-indexed
+  m = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})/);
+  if (m) {
+    const dt = new Date(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]));
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  
+  // Format 4: Excel serial date (a number > 30000)
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    const n = parseFloat(s);
+    if (n > 30000 && n < 100000) {
+      // Excel epoch: Dec 30 1899
+      const dt = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+      if (!isNaN(dt.getTime())) return dt;
+    }
+  }
+  
+  // Format 5: full text date ("April 1, 2026" etc) — try Date constructor
+  const dt = new Date(s);
+  if (!isNaN(dt.getTime()) && dt.getFullYear() > 2000) return dt;
+  
+  return null;
 }
 
-function parseDate(s) {
-  // Try DD.MM.YYYY
-  const m1 = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-  if (m1) {
-    let [, d, mo, y] = m1;
-    if (y.length === 2) y = '20' + y;
-    return new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
-  }
-  // Try ISO
-  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m2) {
-    return new Date(parseInt(m2[1]), parseInt(m2[2]) - 1, parseInt(m2[3]));
-  }
-  return null;
+function looksLikeDate(s) {
+  return parseDate(s) !== null;
 }
 
 function formatDate(d) {
@@ -1230,6 +1300,7 @@ function parseToppscorer(rows) {
     'ŠKODA': 'skoda',
     'SKODA': 'skoda',
     'VW NYTTEKJØRETØY': 'nytte',
+    'VW NYTTEKJORETOY': 'nytte',
     'PORSCHE': 'porsche'
   };
   
@@ -1241,48 +1312,45 @@ function parseToppscorer(rows) {
     porsche: { name: 'Porsche', class: 'porsche', sellers: [] }
   };
   
+  // Find each brand header and the columns that follow
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
+    if (!row) continue;
     for (let c = 0; c < row.length; c++) {
       const cell = (row[c] || '').trim().toUpperCase();
-      if (brandLabels[cell]) {
-        const brandKey = brandLabels[cell];
-        // Header row at i+1, data rows at i+2 to i+11
-        // Selger is at column c+1, Biler at c+2 (since # is at c)
-        // But the header is merged across c..c+2
-        // Try to find "Selger" header first
-        const headerRow = rows[i + 1];
-        if (!headerRow) continue;
-        
-        // Find Selger col
-        let selgerCol = -1, bilerCol = -1;
-        for (let cc = c; cc < c + 4 && cc < headerRow.length; cc++) {
-          const h = (headerRow[cc] || '').trim().toLowerCase();
-          if (h === 'selger') selgerCol = cc;
-          if (h === 'biler') bilerCol = cc;
+      const brandKey = brandLabels[cell];
+      if (!brandKey) continue;
+      if (brands[brandKey].sellers.length > 0) continue; // already populated
+      
+      // Brand header found at row i, column c. Column layout:
+      //   c   = # (rank)
+      //   c+1 = Selger
+      //   c+2 = Biler
+      // Header row i+1 has column titles, data starts at i+2
+      const rankCol = c;
+      const selgerCol = c + 1;
+      const bilerCol = c + 2;
+      
+      // Read up to 10 data rows
+      for (let k = 0; k < 10; k++) {
+        const dataRow = rows[i + 2 + k];
+        if (!dataRow) {
+          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+          continue;
         }
-        if (selgerCol === -1) selgerCol = c + 1;
-        if (bilerCol === -1) bilerCol = c + 2;
-        
-        // Read 10 rows
-        for (let k = 0; k < 10; k++) {
-          const dataRow = rows[i + 2 + k];
-          if (!dataRow) break;
-          const selger = (dataRow[selgerCol] || '').trim();
-          const bilerRaw = (dataRow[bilerCol] || '').trim();
-          if (!selger || selger.toLowerCase().includes('venter')) {
-            brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
-          } else {
-            brands[brandKey].sellers.push({
-              rank: k + 1,
-              name: selger,
-              biler: parseNumber(bilerRaw)
-            });
-          }
+        const selger = (dataRow[selgerCol] || '').trim();
+        const bilerRaw = (dataRow[bilerCol] || '').trim();
+        if (!selger || /venter/i.test(selger)) {
+          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+        } else {
+          brands[brandKey].sellers.push({
+            rank: k + 1,
+            name: selger,
+            biler: parseNumber(bilerRaw)
+          });
         }
-        // Don't continue scanning for other brands in this row segment
-        break;
       }
+      break; // move to next row
     }
   }
   
@@ -1563,8 +1631,31 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      
+      // Switch background image per tab
+      const bgMap = {
+        'gruppespill': 'bg-gruppespill.jpg',
+        'sluttspill': 'bg-sluttspill.jpg',
+        'toppscorer': 'bg-toppscorer.jpg'
+      };
+      const bg = bgMap[tab.dataset.tab];
+      if (bg) {
+        // Try to load it; if it fails, no background is shown
+        const img = new Image();
+        img.onload = () => document.body.style.setProperty('--bg-image', `url("${bg}")`);
+        img.onerror = () => document.body.style.setProperty('--bg-image', 'none');
+        img.src = bg;
+      }
     });
   });
+  
+  // Set initial background
+  (function setInitialBg() {
+    const img = new Image();
+    img.onload = () => document.body.style.setProperty('--bg-image', `url("bg-gruppespill.jpg")`);
+    img.onerror = () => {};
+    img.src = 'bg-gruppespill.jpg';
+  })();
   
   // Refresh button
   document.getElementById('refreshBtn').addEventListener('click', refresh);
