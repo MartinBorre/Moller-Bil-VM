@@ -921,7 +921,7 @@ footer a {
 </main>
 
 <footer>
-  Møller Bil · Salgskonkurranse VM 2026 · Oppdateres manuelt fra Google Sheets
+  Møller Bil · Salgskonkurranse VM 2026 · Oppdateres daglig
 </footer>
 
 <script>
@@ -1028,7 +1028,10 @@ function parseCSV(text) {
 async function fetchSheet(url) {
   const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return await response.text();
+  // Force UTF-8 decoding to handle Norwegian characters (æ, ø, å) correctly
+  const buffer = await response.arrayBuffer();
+  const decoder = new TextDecoder('utf-8');
+  return decoder.decode(buffer);
 }
 
 async function loadAllData() {
@@ -1125,35 +1128,41 @@ function parseOversikt(rows) {
     bracket: { kf: [], sf: [], f: [], winner: null }
   };
   
-  // Find rows with period names. The period table is at Oversikt rows 7-10:
-  //   col B (idx 1) = name (merged across B-E)
-  //   col F (idx 5) = fra dato
-  //   col G (idx 6) = til dato
+  // Periods are at fixed rows 7-10 in Oversikt (1-indexed) = indices 6-9 (0-indexed).
+  // Layout: col F (idx 5) = fra dato, col G (idx 6) = til dato.
+  // Names may be missing from CSV due to merged cells, so we use position.
   const periodNames = ['Gruppespill', 'Kvartfinale', 'Semifinale', 'Finale'];
-  for (const row of rows) {
-    if (!row || row.length < 2) continue;
+  for (let i = 0; i < 4; i++) {
+    const rowIdx = 6 + i; // rows 7-10 in Excel = indices 6-9
+    const row = rows[rowIdx];
+    if (!row) continue;
+    
+    // Try to find dates by scanning the row for date-looking values
+    let fra = null, til = null;
+    for (let c = 0; c < row.length; c++) {
+      const v = (row[c] || '').trim();
+      if (!v) continue;
+      const parsed = parseDate(v);
+      if (parsed) {
+        if (!fra) fra = parsed;
+        else if (!til) { til = parsed; break; }
+      }
+    }
+    
+    // Try to find name (in case it's there in some cell), else use the standard name
+    let name = periodNames[i];
     for (let c = 0; c < Math.min(8, row.length); c++) {
-      const cell = (row[c] || '').trim();
-      if (!periodNames.includes(cell)) continue;
-      
-      // Look for two date-looking values in the rest of the row
-      let fra = null, til = null;
-      for (let cc = c + 1; cc < row.length; cc++) {
-        const v = (row[cc] || '').trim();
-        if (!v) continue;
-        const parsed = parseDate(v);
-        if (parsed) {
-          if (!fra) fra = parsed;
-          else if (!til) { til = parsed; break; }
-        }
+      const v = (row[c] || '').trim();
+      if (periodNames.includes(v)) {
+        name = v;
+        break;
       }
-      if (fra && til) {
-        result.perioder.push({ name: cell, fra, til });
-      } else if (fra) {
-        // Got start but not end - still record so we know period exists
-        result.perioder.push({ name: cell, fra, til: fra });
-      }
-      break;
+    }
+    
+    if (fra && til) {
+      result.perioder.push({ name, fra, til });
+    } else if (fra) {
+      result.perioder.push({ name, fra, til: fra });
     }
   }
   
@@ -1294,16 +1303,6 @@ function getPeriodStatus(period) {
 // Each table has header row with #, Selger, Biler then 10 rows
 // ===========================================================================
 function parseToppscorer(rows) {
-  const brandLabels = {
-    'VOLKSWAGEN': 'vw',
-    'AUDI': 'audi',
-    'ŠKODA': 'skoda',
-    'SKODA': 'skoda',
-    'VW NYTTEKJØRETØY': 'nytte',
-    'VW NYTTEKJORETOY': 'nytte',
-    'PORSCHE': 'porsche'
-  };
-  
   const brands = {
     vw: { name: 'Volkswagen', class: 'vw', sellers: [] },
     audi: { name: 'Audi', class: 'audi', sellers: [] },
@@ -1312,45 +1311,50 @@ function parseToppscorer(rows) {
     porsche: { name: 'Porsche', class: 'porsche', sellers: [] }
   };
   
-  // Find each brand header and the columns that follow
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row) continue;
-    for (let c = 0; c < row.length; c++) {
-      const cell = (row[c] || '').trim().toUpperCase();
-      const brandKey = brandLabels[cell];
-      if (!brandKey) continue;
-      if (brands[brandKey].sellers.length > 0) continue; // already populated
-      
-      // Brand header found at row i, column c. Column layout:
-      //   c   = # (rank)
-      //   c+1 = Selger
-      //   c+2 = Biler
-      // Header row i+1 has column titles, data starts at i+2
-      const rankCol = c;
-      const selgerCol = c + 1;
-      const bilerCol = c + 2;
-      
-      // Read up to 10 data rows
-      for (let k = 0; k < 10; k++) {
-        const dataRow = rows[i + 2 + k];
-        if (!dataRow) {
-          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
-          continue;
-        }
-        const selger = (dataRow[selgerCol] || '').trim();
-        const bilerRaw = (dataRow[bilerCol] || '').trim();
-        if (!selger || /venter/i.test(selger)) {
-          brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
-        } else {
-          brands[brandKey].sellers.push({
-            rank: k + 1,
-            name: selger,
-            biler: parseNumber(bilerRaw)
-          });
-        }
+  // Toppscorer has fixed-position tables. Based on the Excel build:
+  //   Row 5 (idx 4):  brand headers VOLKSWAGEN (col B/idx 1) & AUDI (col F/idx 5)
+  //   Row 6 (idx 5):  column subheaders (#, Selger, Biler)
+  //   Rows 7-16:      10 data rows for VW (cols B-D) and Audi (cols F-H)
+  //   Row 19 (idx 18): brand headers ŠKODA & VW NYTTEKJØRETØY
+  //   Row 20:         subheaders
+  //   Rows 21-30:     10 data rows for Skoda and Nytte
+  //   Row 33-34:      Porsche header
+  //   Rows 35-44:     Porsche data (currently empty)
+  //
+  // Each brand uses 3 columns: rank, selger, biler.
+  // Names: rank in col c, selger in c+1, biler in c+2.
+  
+  const tables = [
+    // brandKey, brandHeaderRowIdx, dataStartRowIdx, rankCol
+    ['vw',      4,  6,  1],   // VW: header row 5, data starts row 7, rank col B (idx 1)
+    ['audi',    4,  6,  5],   // Audi: same row, col F (idx 5)
+    ['skoda',   18, 20, 1],   // Skoda: header row 19, data row 21
+    ['nytte',   18, 20, 5],   // Nytte: same row 19
+    ['porsche', 32, 34, 1]    // Porsche: header row 33, data row 35
+  ];
+  
+  for (const [brandKey, headerRowIdx, dataStartIdx, rankCol] of tables) {
+    const selgerCol = rankCol + 1;
+    const bilerCol = rankCol + 2;
+    
+    for (let k = 0; k < 10; k++) {
+      const dataRow = rows[dataStartIdx + k];
+      if (!dataRow) {
+        brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+        continue;
       }
-      break; // move to next row
+      const selger = (dataRow[selgerCol] || '').trim();
+      const bilerRaw = (dataRow[bilerCol] || '').trim();
+      
+      if (!selger || /venter/i.test(selger)) {
+        brands[brandKey].sellers.push({ rank: k + 1, name: '', biler: 0 });
+      } else {
+        brands[brandKey].sellers.push({
+          rank: k + 1,
+          name: selger,
+          biler: parseNumber(bilerRaw)
+        });
+      }
     }
   }
   
@@ -1362,25 +1366,35 @@ function parseToppscorer(rows) {
 // ===========================================================================
 function renderPeriodBar(perioder, containerId) {
   const container = document.getElementById(containerId);
-  if (!perioder || perioder.length === 0) {
-    container.innerHTML = '<div class="period-item"><span class="period-label">Perioder</span><span class="period-name">Ikke konfigurert</span></div>';
-    return;
-  }
   
-  const today = new Date();
+  // Always show 4 standard rounds. Fill in dates from passed-in perioder if available.
+  const allRounds = ['Gruppespill', 'Kvartfinale', 'Semifinale', 'Finale'];
+  const periodMap = {};
+  (perioder || []).forEach(p => { periodMap[p.name] = p; });
   
-  container.innerHTML = perioder.map(p => {
-    const status = getPeriodStatus(p);
-    const statusLabel = { active: 'Aktiv nå', upcoming: 'Kommer', completed: 'Ferdig' }[status];
-    const statusClass = { active: 'status-active', upcoming: 'status-upcoming', completed: 'status-completed' }[status];
-    return `
-      <div class="period-item">
-        <span class="period-label">Runde</span>
-        <span class="period-name">${p.name}</span>
-        <span class="period-dates">${formatDate(p.fra)} – ${formatDate(p.til)}</span>
-        <span class="period-status ${statusClass}">${statusLabel}</span>
-      </div>
-    `;
+  container.innerHTML = allRounds.map(name => {
+    const p = periodMap[name];
+    if (p && p.fra && p.til) {
+      const status = getPeriodStatus(p);
+      const statusLabel = { active: 'Aktiv nå', upcoming: 'Kommer', completed: 'Ferdig' }[status];
+      const statusClass = { active: 'status-active', upcoming: 'status-upcoming', completed: 'status-completed' }[status];
+      return `
+        <div class="period-item">
+          <span class="period-label">Varighet</span>
+          <span class="period-name">${name}</span>
+          <span class="period-dates">${formatDate(p.fra)} – ${formatDate(p.til)}</span>
+          <span class="period-status ${statusClass}">${statusLabel}</span>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="period-item">
+          <span class="period-label">Varighet</span>
+          <span class="period-name">${name}</span>
+          <span class="period-dates">— ikke satt —</span>
+        </div>
+      `;
+    }
   }).join('');
 }
 
@@ -1435,13 +1449,15 @@ function renderGroups(teams) {
 // ===========================================================================
 function renderBracket(bracket) {
   const container = document.getElementById('bracketContainer');
-  if (!bracket || (!bracket.kf.length && !bracket.sf.length && !bracket.f.length)) {
-    container.innerHTML = '<div class="state-message"><h2>Bracket ikke startet</h2><p>Lag må fylles inn manuelt i Excel-arket.</p></div>';
-    return;
-  }
   
-  // Determine winners for visual styling: in each KF pair (0,1), (2,3), etc., 
-  // the team with higher poeng is the "winner"
+  // Always show full bracket structure, even if no data
+  bracket = bracket || { kf: [], sf: [], f: [], winner: null };
+  
+  // Pad arrays to expected sizes so empty slots render
+  while (bracket.kf.length < 8) bracket.kf.push({ lag: '', poeng: 0 });
+  while (bracket.sf.length < 4) bracket.sf.push({ lag: '', poeng: 0 });
+  while (bracket.f.length < 2) bracket.f.push({ lag: '', poeng: 0 });
+  
   const pairWinner = (a, b) => {
     if (!a.lag || !b.lag) return null;
     if (a.poeng > b.poeng) return 'a';
@@ -1469,20 +1485,17 @@ function renderBracket(bracket) {
     return `<div class="match">${renderTeam(a, aRole)}${renderTeam(b, bRole)}</div>`;
   };
   
-  // KF: 4 matches
   const kfMatches = [];
   for (let i = 0; i < 8; i += 2) {
-    kfMatches.push(renderMatch(bracket.kf[i] || {lag:'',poeng:0}, bracket.kf[i+1] || {lag:'',poeng:0}));
+    kfMatches.push(renderMatch(bracket.kf[i], bracket.kf[i+1]));
   }
   
-  // SF: 2 matches
   const sfMatches = [];
   for (let i = 0; i < 4; i += 2) {
-    sfMatches.push(renderMatch(bracket.sf[i] || {lag:'',poeng:0}, bracket.sf[i+1] || {lag:'',poeng:0}));
+    sfMatches.push(renderMatch(bracket.sf[i], bracket.sf[i+1]));
   }
   
-  // F: 1 match
-  const fMatches = [renderMatch(bracket.f[0] || {lag:'',poeng:0}, bracket.f[1] || {lag:'',poeng:0})];
+  const fMatches = [renderMatch(bracket.f[0], bracket.f[1])];
   
   const winnerHtml = bracket.winner ?
     `<div class="winner-card">
