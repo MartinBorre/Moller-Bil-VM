@@ -974,7 +974,13 @@ footer a {
 
 const CONFIG_KEY = 'mb_vm2026_config';
 
-let CONFIG = loadConfig();
+const SHEET_ID = '1Jqk-UwOWHYUKyY1cVJhd0UPZZZNYeKMWXAAY-YVhkuM';
+let CONFIG = {
+  spreadsheetId: SHEET_ID,
+  malPerLagUrl: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Mål per lag')}`,
+  toppscorerUrl: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Toppscorer')}`,
+  oversiktUrl: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Oversikt')}`
+};
 
 function loadConfig() {
   try {
