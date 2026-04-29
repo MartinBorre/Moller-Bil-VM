@@ -1496,7 +1496,7 @@ function renderGroups(teams) {
             <tr>
               <th>#</th>
               <th>Lag</th>
-              <th class="center">Mål</th>
+              <th class="center">Dagsmål</th>
               <th class="center">Poeng</th>
             </tr>
           </thead>
@@ -1519,7 +1519,7 @@ function renderGroups(teams) {
 // ===========================================================================
 // RENDER: Bracket
 // ===========================================================================
-function renderBracket(bracket) {
+function renderBracket(bracket, perioder) {
   const container = document.getElementById('bracketContainer');
   
   // Always show full bracket structure, even if no data
@@ -1529,6 +1529,10 @@ function renderBracket(bracket) {
   while (bracket.kf.length < 8) bracket.kf.push({ lag: '', poeng: 0 });
   while (bracket.sf.length < 4) bracket.sf.push({ lag: '', poeng: 0 });
   while (bracket.f.length < 2) bracket.f.push({ lag: '', poeng: 0 });
+  
+  // Determine if finale period is over (only then show winner)
+  const finalePeriod = (perioder || []).find(p => p.name === 'Finale');
+  const finaleEnded = finalePeriod && finalePeriod.til && (new Date() > finalePeriod.til);
   
   const pairWinner = (a, b) => {
     if (!a.lag || !b.lag) return null;
@@ -1569,7 +1573,7 @@ function renderBracket(bracket) {
   
   const fMatches = [renderMatch(bracket.f[0], bracket.f[1])];
   
-  const winnerHtml = bracket.winner ?
+  const winnerHtml = (bracket.winner && finaleEnded) ?
     `<div class="winner-card">
       <span class="winner-trophy">🏆</span>
       <div class="winner-label">Vinner</div>
@@ -1615,15 +1619,23 @@ function renderToppscorer(brands) {
     
     const sellers = b.sellers.length > 0 ? b.sellers : Array.from({length: 10}, (_, i) => ({rank: i+1, name: '', biler: 0}));
     
+    // Porsche uses top 3 highlighting; other brands use top 5
+    const top5Limit = key === 'porsche' ? 3 : 5;
+    
+    // Find the top score (rank 1's biler value, if any seller has data)
+    const leaderSeller = sellers.find(s => s.name && s.rank === 1);
+    const topScore = leaderSeller ? leaderSeller.biler : null;
+    
     return `
       <div class="brand-card">
         <div class="brand-header ${b.class}">${b.name}</div>
         <ul class="scorer-list">
           ${sellers.map(s => {
-            const isLeader = s.rank === 1 && s.name;
-            const isTop5 = s.rank <= 5 && s.name;
+            // Leader: rank 1 OR shares the top score
+            const isLeader = s.name && topScore !== null && s.biler === topScore;
+            const isTop5 = !isLeader && s.rank <= top5Limit && s.name;
             const isEmpty = !s.name;
-            const cls = isLeader ? 'leader' : (isTop5 ? 'top5' : '') + (isEmpty ? ' empty' : '');
+            const cls = (isLeader ? 'leader' : (isTop5 ? 'top5' : '')) + (isEmpty ? ' empty' : '');
             const rankDisplay = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : s.rank;
             const rankCls = s.rank <= 3 && s.name ? 'medal' : '';
             return `
@@ -1690,7 +1702,7 @@ async function refresh() {
     renderPeriodBar(oversikt.perioder, 'periodBar');
     renderPeriodBar(oversikt.perioder, 'periodBarBracket');
     renderGroups(teams);
-    renderBracket(oversikt.bracket);
+    renderBracket(oversikt.bracket, oversikt.perioder);
     renderToppscorer(brands);
     
     const now = new Date();
