@@ -1211,50 +1211,60 @@ function parseOversikt(rows) {
   }
   
   if (bracketStart >= 0) {
-    const offsets = {
-      kf: [
-        { teamRow: 2, teamCol: 1, poengCol: 2 },
-        { teamRow: 3, teamCol: 1, poengCol: 2 },
-        { teamRow: 5, teamCol: 1, poengCol: 2 },
-        { teamRow: 6, teamCol: 1, poengCol: 2 },
-        { teamRow: 8, teamCol: 1, poengCol: 2 },
-        { teamRow: 9, teamCol: 1, poengCol: 2 },
-        { teamRow: 11, teamCol: 1, poengCol: 2 },
-        { teamRow: 12, teamCol: 1, poengCol: 2 }
-      ],
-      sf: [
-        { teamRow: 3, teamCol: 6, poengCol: 7 },
-        { teamRow: 6, teamCol: 6, poengCol: 7 },
-        { teamRow: 9, teamCol: 6, poengCol: 7 },
-        { teamRow: 12, teamCol: 6, poengCol: 7 }
-      ],
-      f: [
-        { teamRow: 6, teamCol: 11, poengCol: 12 },
-        { teamRow: 9, teamCol: 11, poengCol: 12 }
-      ]
+    // Words/patterns that should never be treated as team names
+    const invalidNames = new Set([
+      'GRUPPE 1', 'GRUPPE 2', 'GRUPPE 3', 'GRUPPE 4',
+      'GRUPPESPILL', 'KVARTFINALE', 'SEMIFINALE', 'FINALE',
+      'VINNER', '#', 'LAG', 'MÅL', 'POENG', 'TBD',
+      'FRA', 'TIL', 'RUNDE', 'STATUS', 'OPPDATERES'
+    ]);
+    
+    const isValidTeamName = (s) => {
+      if (!s) return false;
+      const upper = s.trim().toUpperCase();
+      if (invalidNames.has(upper)) return false;
+      // Reject pure numbers
+      if (/^\d+([.,]\d+)?$/.test(s.trim())) return false;
+      // Reject single chars
+      if (s.trim().length < 2) return false;
+      return true;
     };
     
-    const getCell = (rowOffset, col) => {
-      const r = rows[bracketStart + rowOffset];
-      if (!r) return '';
-      return (r[col] || '').trim();
-    };
+    // Scan rows after bracketStart. For each row, find team names in columns B(1), G(6), L(11).
+    // Collect them in order. We expect 8 KF, 4 SF, 2 F teams.
+    const kfTeams = [];
+    const sfTeams = [];
+    const fTeams = [];
     
-    result.bracket.kf = offsets.kf.map(o => ({
-      lag: getCell(o.teamRow, o.teamCol),
-      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
-    }));
-    result.bracket.sf = offsets.sf.map(o => ({
-      lag: getCell(o.teamRow, o.teamCol),
-      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
-    }));
-    result.bracket.f = offsets.f.map(o => ({
-      lag: getCell(o.teamRow, o.teamCol),
-      poeng: parseNumber(getCell(o.teamRow, o.poengCol))
-    }));
+    for (let r = bracketStart + 1; r < Math.min(bracketStart + 25, rows.length); r++) {
+      const row = rows[r];
+      if (!row) continue;
+      
+      // KF team in col B (idx 1), poeng in col C (idx 2)
+      const kfName = (row[1] || '').trim();
+      if (isValidTeamName(kfName) && kfTeams.length < 8) {
+        kfTeams.push({ lag: kfName, poeng: parseNumber(row[2]) });
+      }
+      
+      // SF team in col G (idx 6), poeng in col H (idx 7)
+      const sfName = (row[6] || '').trim();
+      if (isValidTeamName(sfName) && sfTeams.length < 4) {
+        sfTeams.push({ lag: sfName, poeng: parseNumber(row[7]) });
+      }
+      
+      // F team in col L (idx 11), poeng in col M (idx 12)
+      const fName = (row[11] || '').trim();
+      if (isValidTeamName(fName) && fTeams.length < 2) {
+        fTeams.push({ lag: fName, poeng: parseNumber(row[12]) });
+      }
+    }
     
-    if (result.bracket.f.length === 2 && result.bracket.f[0].lag && result.bracket.f[1].lag) {
-      const [t1, t2] = result.bracket.f;
+    result.bracket.kf = kfTeams;
+    result.bracket.sf = sfTeams;
+    result.bracket.f = fTeams;
+    
+    if (fTeams.length === 2 && fTeams[0].lag && fTeams[1].lag) {
+      const [t1, t2] = fTeams;
       if (t1.poeng > t2.poeng) result.bracket.winner = t1.lag;
       else if (t2.poeng > t1.poeng) result.bracket.winner = t2.lag;
       else result.bracket.winner = 'Uavgjort';
