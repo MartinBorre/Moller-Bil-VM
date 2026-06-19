@@ -1352,8 +1352,11 @@ function formatDate(d) {
 function getPeriodStatus(period) {
   if (!period.fra || !period.til) return 'upcoming';
   const now = new Date();
+  // til-datoen tolkes som hele dagen, ikke kun midnatt
+  const tilEndOfDay = new Date(period.til);
+  tilEndOfDay.setHours(23, 59, 59, 999);
   if (now < period.fra) return 'upcoming';
-  if (now > period.til) return 'completed';
+  if (now > tilEndOfDay) return 'completed';
   return 'active';
 }
 
