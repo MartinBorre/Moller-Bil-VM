@@ -1628,25 +1628,47 @@ function renderToppscorer(brands) {
     
     const sellers = b.sellers.length > 0 ? b.sellers : Array.from({length: 10}, (_, i) => ({rank: i+1, name: '', biler: 0}));
     
-    // Porsche uses top 3 highlighting; other brands use top 5
+    // Beregn rang basert på biler-verdi (med ties)
+    // Sorter selgere med navn etter biler desc, regn rang
+    const sellersWithRank = sellers.map(s => ({...s}));
+    let prevBiler = null;
+    let prevRank = 0;
+    sellersWithRank.forEach((s, idx) => {
+      if (!s.name) {
+        s.computedRank = idx + 1; // tomme selgere beholder sin posisjons-rang
+        return;
+      }
+      if (s.biler === prevBiler) {
+        s.computedRank = prevRank; // samme rang som forrige
+      } else {
+        s.computedRank = idx + 1; // ny rang basert på posisjon
+        prevRank = s.computedRank;
+        prevBiler = s.biler;
+      }
+    });
+    
+    // Porsche bruker topp 3-uthevelse; andre merker topp 5
     const top5Limit = key === 'porsche' ? 3 : 5;
     
-    // Find the top score (rank 1's biler value, if any seller has data)
-    const leaderSeller = sellers.find(s => s.name && s.rank === 1);
+    // Finn topp-poengsum for leder-fargen
+    const leaderSeller = sellersWithRank.find(s => s.name && s.computedRank === 1);
     const topScore = leaderSeller ? leaderSeller.biler : null;
     
     return `
       <div class="brand-card">
         <div class="brand-header ${b.class}">${b.name}</div>
         <ul class="scorer-list">
-          ${sellers.map(s => {
-            // Leader: rank 1 OR shares the top score
+          ${sellersWithRank.map(s => {
             const isLeader = s.name && topScore !== null && s.biler === topScore;
-            const isTop5 = !isLeader && s.rank <= top5Limit && s.name;
+            const isTop5 = !isLeader && s.computedRank <= top5Limit && s.name;
             const isEmpty = !s.name;
             const cls = (isLeader ? 'leader' : (isTop5 ? 'top5' : '')) + (isEmpty ? ' empty' : '');
-            const rankDisplay = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : s.rank;
-            const rankCls = s.rank <= 3 && s.name ? 'medal' : '';
+            
+            // Medalje basert på computedRank, ikke s.rank
+            const rank = s.computedRank;
+            const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+            const rankCls = rank <= 3 && s.name ? 'medal' : '';
+            
             return `
               <li class="scorer-row ${cls}">
                 <span class="scorer-rank ${rankCls}">${rankDisplay}</span>
