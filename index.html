@@ -661,7 +661,98 @@ main {
   background: var(--moller-blue);
   color: var(--white);
 }
+/* ===== CHAMPIONSHIP OVER OVERLAY ===== */
+/* For å skjule overlayet: endre "block" til "none" på linjen under */
+.championship-over { display: block; }
 
+.championship-over .overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 62, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  animation: fadeInOverlay 0.6s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.championship-over .overlay-content {
+  max-width: 800px;
+  text-align: center;
+  color: var(--white);
+}
+
+.championship-over .overlay-trophy {
+  font-size: 96px;
+  margin-bottom: 24px;
+  display: block;
+  animation: trophyPulse 2s ease-in-out infinite;
+}
+
+@keyframes trophyPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.championship-over .overlay-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 48px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  color: var(--gold);
+  line-height: 1.2;
+}
+
+.championship-over .overlay-message {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.4;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+
+.championship-over .overlay-time {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-top: 24px;
+}
+
+.championship-over .overlay-cheer {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-top: 32px;
+  animation: cheerBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes cheerBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (max-width: 720px) {
+  .championship-over .overlay-trophy { font-size: 64px; }
+  .championship-over .overlay-title { font-size: 32px; }
+  .championship-over .overlay-message { font-size: 18px; }
+  .championship-over .overlay-time { font-size: 22px; }
+  .championship-over .overlay-cheer { font-size: 24px; letter-spacing: 2px; }
+}
 .formula-note {
   margin-top: 24px;
   padding: 16px 20px;
@@ -877,7 +968,19 @@ footer a {
     </div>
   </div>
 </div>
-
+<!-- ===== CHAMPIONSHIP OVER OVERLAY ===== -->
+<!-- For å skjule overlayet: endre "block" til "none" i CSS-regelen ".championship-over { display: block; }" -->
+<div class="championship-over">
+  <div class="overlay-backdrop">
+    <div class="overlay-content">
+      <span class="overlay-trophy">🏆</span>
+      <h1 class="overlay-title">Mesterskapet er over</h1>
+      <p class="overlay-message">De endelige resultatene annonseres i premieutdelingen</p>
+      <div class="overlay-time">Onsdag 1. juli — kl. 10:00</div>
+      <div class="overlay-cheer">🇳🇴 Heia Norge! 🇳🇴</div>
+    </div>
+  </div>
+</div>
 <!-- ===== HEADER ===== -->
 <header class="header">
   <div class="header-inner">
